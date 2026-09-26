@@ -30,3 +30,4 @@ The waveform was inspected using Surfer.
 - `posedge clk` makes the storage element edge-triggered.
 - `00` preserves the existing state.
 - `11` is an invalid SR condition and is represented as `X` in simulation.
+- `$finish` was added (in commit 2) ,along with an independent `initial` block for the clk signal
