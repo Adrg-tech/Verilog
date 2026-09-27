@@ -37,4 +37,5 @@ The waveform was inspected using Surfer to verify:
 - `posedge clk` makes the flip-flop positive-edge-triggered.
 - The reset is **synchronous** because it is evaluated inside the `posedge clk` block.
 - `<=` is used for the sequential assignment to `q`.
-- `d` and `q` remain uninitialized/undefined at the start -which is done on purpose to study such behavious
+- `d` and `q` remain uninitialized/undefined at the start -which is done on purpose to study such behaviour
+  
