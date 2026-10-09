@@ -6,36 +6,49 @@ reg rst;
 reg clk;
 wire [3:0] q;
 
-atbc dut(
-    .rst(rst),
-    .clk(clk),
-    .q(q)
-);
+reg [3:0] expected;
+reg checking = 0;
+integer errors = 0;
 
+atbc dut(.rst(rst), .clk(clk), .q(q));
+
+// clock
 initial begin
-    clk=0;
-    forever #10 clk=~clk;
+    clk = 0;
+    forever #10 clk = ~clk;
 end
 
+// reference model
+always @(posedge rst) expected = 4'b0000;
+always @(negedge clk)
+    if (!rst) expected <= expected + 1;
+
+// checker
+always @(posedge clk)
+    if (checking && q !== expected) begin
+        $display("ERROR t=%0t: q=%b expected=%b", $time, q, expected);
+        errors = errors + 1;
+    end
+
+// stimulus
 initial begin
     $dumpfile("atbc.vcd");
-    $dumpvars(0,atbc_tb);
+    $dumpvars(0, atbc_tb);
 
-    #5;
-    rst=1'b1; //tried it without reset ,but even with the q<=1'b0; line in the tff, q dint become 0 -  thats cuz q<=~q; could fire off @ time 0, (and q=x, uknown), I got q=x in the WF. SO to prevent that and not rely solely on the initial block in tff (which dint work anyway lol), Js did a quick rst @ the beggining...
-    #10;
+    rst = 0;
+    #5  rst = 1;            // initial reset pulse
+    #20 rst = 0;
+    checking = 1;           // q is now known, start checking
 
-    rst=1'b0;
     repeat (11) @(negedge clk);
-    #5;
-    rst=1'b1;
-    #10;
-    rst=1'b0;
-    #10;
-    repeat (17) @(negedge clk);
+    #5  rst = 1;            // mid-count reset, between clock edges
+    #10 rst = 0;
 
+    repeat (20) @(negedge clk);
+
+    if (errors == 0) $display("PASS");
+    else             $display("FAIL: %0d errors", errors);
     $finish;
-    
 end
 
 endmodule

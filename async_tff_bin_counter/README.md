@@ -1,56 +1,55 @@
-# Asynchronous T Flip-Flop Binary Counter (ATBC)
+# Asynchronous TFF Binary Counter
 
-A 4-bit asynchronous binary counter implemented in Verilog using T flip-flops.
+## Overview
+A 4-bit asynchronous (ripple) binary up-counter implemented using T flip-flops (TFFs). Each stage toggles on the falling edge of its clock input, with the output of one stage driving the clock of the next stage.
 
-## Current Design
+The counter supports an **asynchronous, active-high reset**, which clears all four bits to `0000`.
 
-The counter is built from four T flip-flops connected in a ripple configuration.
-
-The design uses:
-
-- Four TFFs with their toggle inputs tied to logic HIGH (`1'b1`)
-- A `generate` loop to instantiate the higher-order flip-flops
-- The output of each stage as the clock input of the next stage
-- An asynchronous, active-high reset
-- Negative-edge-triggered flip-flops
-
-The counter has four output bits:
-
-`q[3:0]`
+## Design
+- **Counter width:** 4 bits
+- **Flip-flop type:** Negative-edge-triggered T flip-flop
+- **Counting sequence:** `0000` → `0001` → `0010` → ... → `1111` → `0000`
+- **Reset:** Asynchronous, active-high
+- **Architecture:** Ripple counter; each stage is clocked by the preceding stage's output
 
 ## Files
-
-- `tff.v` — Negative-edge-triggered T flip-flop with asynchronous reset
-- `atbc.v` — 4-bit asynchronous ripple counter
-- `atbc_tb.v` — Testbench
-- `Waveforms/` — Waveform files/screenshots inspected using Surfer
+- `tff.v` — T flip-flop with asynchronous reset
+- `atbc.v` — Top-level 4-bit asynchronous binary counter
+- `atbc_tb.v` — Testbench with stimulus, reference model, and output checker
+- `Waveform/atbc1_waveform.png` — Captured simulation waveform
+- `.gitignore` — Excludes generated simulation artifacts
 
 ## Verification
 
-The testbench verifies:
+The testbench verifies the counter using a reference model and an automated checker.
 
-- Initial reset to `0000`
-- Counter operation across multiple falling edges of the external clock
-- Ripple behavior between successive flip-flop stages
-- Asynchronous reset assertion during simulation
-- Counter operation after reset is deasserted
-- Waveform behavior inspected using Surfer
+### Test scenarios
+- Initial reset to establish a known counter state
+- Normal counting operation
+- Mid-count asynchronous reset, asserted between clock edges
+- Continued counting after reset
+- Output comparison against the reference model
+- Error counting and final `PASS` / `FAIL` report
 
-The testbench generates a 20 ns clock period and applies reset twice during the simulation.
+The checker uses case inequality (`!==`) so that unknown (`X`) or high-impedance (`Z`) output bits are also detected as mismatches.
 
-## Notes
+## Simulation
 
-- `negedge clk` makes each TFF negative-edge-triggered.
-- `posedge rst` allows the asynchronous reset to take effect independently of the clock.
-- The reset is active-high: `rst = 1` forces `q = 0`.
-- All T inputs are tied to `1'b1`, so each flip-flop toggles on its active clock edge.
-- The LSB flip-flop is clocked by the external clock. Each subsequent flip-flop is clocked by the preceding stage's output.
-- The counter is asynchronous because the flip-flops do not share a common clock; transitions propagate through the stages.
-- The `initial` block sets the flip-flop output to `0` at simulation startup. This is separate from the asynchronous reset mechanism.
-- The actual count sequence depends on the triggering edge and clock connections. The waveform should be used to verify the implemented circuit's behavior rather than assuming a conventional binary up-count sequence.
+Using **Icarus Verilog**:
+
+1. Compile the design and testbench:
+   ```bash
+   iverilog -g2012 -o atbc_sim tff.v atbc.v atbc_tb.v
+   ```
+
+2. Run the simulation:
+   ```bash
+   vvp atbc_sim
+   ```
+
+3. Open the generated `atbc.vcd` waveform in **Surfer** to inspect the clock, reset, counter output, reference value, and checking behavior.
 
 ## Tools
-
-- Verilog
+- Verilog HDL
 - Icarus Verilog
-- Surfer
+- Surfer (waveform inspection)
