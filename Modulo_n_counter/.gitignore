@@ -1,0 +1,4 @@
+mnc_sim
+*.vcd
+run.sh
+mnc_what_changed.md
