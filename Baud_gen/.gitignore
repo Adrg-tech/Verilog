@@ -1,0 +1,4 @@
+baud_sim
+*.vcd
+run.sh
+baud
